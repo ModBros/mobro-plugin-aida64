@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0-windows</TargetFramework>
+        <RootNamespace>MoBro.Plugin.Aida64</RootNamespace>
+        <Authors>ModBros</Authors>
+        <Company>ModBros OG</Company>
+        <Product>MoBro</Product>
+        <Description>Aida64 Plugin for MoBro</Description>
+        <IsPackable>true</IsPackable>
+        <Title>MoBro Aida64 Plugin</Title>
+        <Copyright>(C) ModBros OG 2022</Copyright>
+        <PackageProjectUrl>www.mod-bros.com</PackageProjectUrl>
+        <VersionPrefix>0.0.2</VersionPrefix>
+        <Nullable>enable</Nullable>
+        <EnableDynamicLoading>true</EnableDynamicLoading>
+        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+        <LangVersion>10</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Content Include="*.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Content Include="Resources\**\*">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="MoBro.Plugin.SDK" Version="0.0.1" />
+    </ItemGroup>
+
+</Project>
