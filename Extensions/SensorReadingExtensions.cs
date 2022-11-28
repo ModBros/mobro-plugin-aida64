@@ -154,10 +154,6 @@ internal static class SensorReadingExtensions
 
   private static bool TryParseDouble(string value, out double parsedValue)
   {
-    return
-      // Try parsing in the current culture first
-      double.TryParse(value, NumberStyles.Any, CultureInfo.CurrentCulture, out parsedValue) ||
-      // Then in neutral language
-      double.TryParse(value, NumberStyles.Any, CultureInfo.InvariantCulture, out parsedValue);
+    return double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out parsedValue);
   }
 }
