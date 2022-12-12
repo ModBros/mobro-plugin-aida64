@@ -33,7 +33,7 @@ internal static class SensorReadingExtensions
       .Build();
   }
 
-  public static IMetricValue ToMetricValue(this SensorReading reading, in DateTime time)
+  public static MetricValue ToMetricValue(this SensorReading reading, in DateTime time)
   {
     return new MetricValue(
       reading.Id,

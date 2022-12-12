@@ -11,7 +11,7 @@
         <Title>MoBro Aida64 Plugin</Title>
         <Copyright>(C) ModBros OG 2022</Copyright>
         <PackageProjectUrl>www.mod-bros.com</PackageProjectUrl>
-        <VersionPrefix>0.0.3</VersionPrefix>
+        <VersionPrefix>0.1.0</VersionPrefix>
         <Nullable>enable</Nullable>
         <EnableDynamicLoading>true</EnableDynamicLoading>
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
@@ -33,7 +33,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="MoBro.Plugin.SDK" Version="0.0.1" />
+      <PackageReference Include="MoBro.Plugin.SDK" Version="0.1.0" />
     </ItemGroup>
 
 </Project>

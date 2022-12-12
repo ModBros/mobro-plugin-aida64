@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using System.Threading.Tasks;
+﻿using System.Timers;
 using MoBro.Plugin.Aida64.Extensions;
 using MoBro.Plugin.SDK.Models;
 
@@ -7,20 +6,40 @@ namespace MoBro.Plugin.Aida64;
 
 public class Aida64 : IMoBroPlugin
 {
-  private IMoBro? _mobro;
+  private static readonly TimeSpan UpdateInterval = TimeSpan.FromMilliseconds(1000);
 
-  public Task Init(IPluginSettings settings, IMoBro mobro)
+  private readonly Timer _timer;
+
+  private IMoBroService? _service;
+
+  public Aida64()
   {
-    _mobro = mobro;
+    _timer = new Timer
+    {
+      Interval = UpdateInterval.TotalMilliseconds,
+      AutoReset = true,
+      Enabled = false
+    };
+    _timer.Elapsed += Update;
+  }
+
+  public void Init(IMoBroSettings settings, IMoBroService service)
+  {
+    _service = service;
 
     var readings = SharedMemoryReader.ReadSensors();
     var metrics = GetUnregisteredMetrics(readings).ToArray();
-    _mobro.Register(metrics);
+    _service.RegisterItems(metrics);
 
-    return Task.CompletedTask;
+    // start polling metric values
+    _timer.Start();
   }
 
-  public Task<IEnumerable<IMetricValue>> GetMetricValues(IList<string> ids)
+  public void Pause() => _timer.Stop();
+
+  public void Resume() => _timer.Start();
+
+  private void Update(object? sender, ElapsedEventArgs e)
   {
     var readings = SharedMemoryReader.ReadSensors();
     var readingsArr = readings as SensorReading[] ?? readings.ToArray();
@@ -29,26 +48,23 @@ public class Aida64 : IMoBroPlugin
     var unregistered = GetUnregisteredMetrics(readingsArr).ToArray();
     if (unregistered.Length > 0)
     {
-      _mobro?.Register(unregistered);
+      _service?.RegisterItems(unregistered);
     }
 
-    // map and return values
-    var idSet = ids.ToImmutableHashSet();
+    // map and update values
     var now = DateTime.UtcNow;
-    return Task.FromResult(SharedMemoryReader.ReadSensors()
-      .Where(r => idSet.Contains(r.Id))
-      .Select(r => r.ToMetricValue(now))
-    );
+    var values = SharedMemoryReader.ReadSensors().Select(r => r.ToMetricValue(now));
+    _service?.UpdateMetricValues(values);
   }
 
   private IEnumerable<IMoBroItem> GetUnregisteredMetrics(IEnumerable<SensorReading> readings)
   {
     var readingsArr = readings as SensorReading[] ?? readings.ToArray();
 
-    if (_mobro == null || readingsArr.Length <= 0) return Enumerable.Empty<IMoBroItem>();
+    if (_service == null || readingsArr.Length <= 0) return Enumerable.Empty<IMoBroItem>();
 
     return readingsArr
-      .Where(r => !_mobro.TryGetItem<IMetric>(r.Id, out _))
+      .Where(r => !_service.TryGetItem<IMetric>(r.Id, out _))
       .Select(r => r.ToMetric());
   }
 
