@@ -26,12 +26,6 @@ public class Aida64 : IMoBroPlugin
   public void Init(IMoBroSettings settings, IMoBroService service)
   {
     _service = service;
-
-    var readings = SharedMemoryReader.ReadSensors();
-    var metrics = GetUnregisteredMetrics(readings).ToArray();
-    _service.RegisterItems(metrics);
-
-    // start polling metric values
     _timer.Start();
   }
 
@@ -41,11 +35,10 @@ public class Aida64 : IMoBroPlugin
 
   private void Update(object? sender, ElapsedEventArgs e)
   {
-    var readings = SharedMemoryReader.ReadSensors();
-    var readingsArr = readings as SensorReading[] ?? readings.ToArray();
+    var readings = SharedMemoryReader.Read();
 
     // register new metrics (if any)
-    var unregistered = GetUnregisteredMetrics(readingsArr).ToArray();
+    var unregistered = GetUnregisteredMetrics(readings).ToArray();
     if (unregistered.Length > 0)
     {
       _service?.RegisterItems(unregistered);
@@ -53,17 +46,15 @@ public class Aida64 : IMoBroPlugin
 
     // map and update values
     var now = DateTime.UtcNow;
-    var values = SharedMemoryReader.ReadSensors().Select(r => r.ToMetricValue(now));
+    var values = readings.Select(r => r.ToMetricValue(now));
     _service?.UpdateMetricValues(values);
   }
 
-  private IEnumerable<IMoBroItem> GetUnregisteredMetrics(IEnumerable<SensorReading> readings)
+  private IEnumerable<IMoBroItem> GetUnregisteredMetrics(IList<SensorReading> readings)
   {
-    var readingsArr = readings as SensorReading[] ?? readings.ToArray();
+    if (_service == null || !readings.Any()) return Enumerable.Empty<IMoBroItem>();
 
-    if (_service == null || readingsArr.Length <= 0) return Enumerable.Empty<IMoBroItem>();
-
-    return readingsArr
+    return readings
       .Where(r => !_service.TryGetItem<IMetric>(r.Id, out _))
       .Select(r => r.ToMetric());
   }
