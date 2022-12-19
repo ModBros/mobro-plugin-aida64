@@ -8,12 +8,12 @@ public class Aida64 : IMoBroPlugin
 {
   private static readonly TimeSpan UpdateInterval = TimeSpan.FromMilliseconds(1000);
 
+  private readonly IMoBroService _service;
   private readonly Timer _timer;
 
-  private IMoBroService? _service;
-
-  public Aida64()
+  public Aida64(IMoBroService service)
   {
+    _service = service;
     _timer = new Timer
     {
       Interval = UpdateInterval.TotalMilliseconds,
@@ -23,11 +23,7 @@ public class Aida64 : IMoBroPlugin
     _timer.Elapsed += Update;
   }
 
-  public void Init(IMoBroSettings settings, IMoBroService service)
-  {
-    _service = service;
-    _timer.Start();
-  }
+  public void Init() => _timer.Start();
 
   public void Pause() => _timer.Stop();
 
@@ -41,18 +37,18 @@ public class Aida64 : IMoBroPlugin
     var unregistered = GetUnregisteredMetrics(readings).ToArray();
     if (unregistered.Length > 0)
     {
-      _service?.RegisterItems(unregistered);
+      _service.RegisterItems(unregistered);
     }
 
     // map and update values
     var now = DateTime.UtcNow;
     var values = readings.Select(r => r.ToMetricValue(now));
-    _service?.UpdateMetricValues(values);
+    _service.UpdateMetricValues(values);
   }
 
   private IEnumerable<IMoBroItem> GetUnregisteredMetrics(IList<SensorReading> readings)
   {
-    if (_service == null || !readings.Any()) return Enumerable.Empty<IMoBroItem>();
+    if (!readings.Any()) return Enumerable.Empty<IMoBroItem>();
 
     return readings
       .Where(r => !_service.TryGetItem<IMetric>(r.Id, out _))
