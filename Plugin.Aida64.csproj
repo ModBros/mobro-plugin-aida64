@@ -33,7 +33,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="MoBro.Plugin.SDK" Version="0.1.2" />
+      <PackageReference Include="MoBro.Plugin.SDK" Version="0.1.4" />
     </ItemGroup>
 
 </Project>

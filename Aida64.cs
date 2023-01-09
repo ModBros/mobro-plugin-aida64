@@ -31,19 +31,26 @@ public class Aida64 : IMoBroPlugin
 
   private void Update(object? sender, ElapsedEventArgs e)
   {
-    var readings = SharedMemoryReader.Read();
-
-    // register new metrics (if any)
-    var unregistered = GetUnregisteredMetrics(readings).ToArray();
-    if (unregistered.Length > 0)
+    try
     {
-      _service.RegisterItems(unregistered);
-    }
+      var readings = SharedMemoryReader.Read();
 
-    // map and update values
-    var now = DateTime.UtcNow;
-    var values = readings.Select(r => r.ToMetricValue(now));
-    _service.UpdateMetricValues(values);
+      // register new metrics (if any)
+      var unregistered = GetUnregisteredMetrics(readings).ToArray();
+      if (unregistered.Length > 0)
+      {
+        _service.RegisterItems(unregistered);
+      }
+
+      // map and update values
+      var now = DateTime.UtcNow;
+      var values = readings.Select(r => r.ToMetricValue(now));
+      _service.UpdateMetricValues(values);
+    }
+    catch (Exception exception)
+    {
+      _service.NotifyError(exception);
+    }
   }
 
   private IEnumerable<IMoBroItem> GetUnregisteredMetrics(IList<SensorReading> readings)
