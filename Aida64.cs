@@ -1,56 +1,43 @@
-﻿using System.Timers;
-using MoBro.Plugin.Aida64.Extensions;
+﻿using MoBro.Plugin.Aida64.Extensions;
 using MoBro.Plugin.SDK.Models;
+using MoBro.Plugin.SDK.Services;
 
 namespace MoBro.Plugin.Aida64;
 
 public class Aida64 : IMoBroPlugin
 {
   private static readonly TimeSpan UpdateInterval = TimeSpan.FromMilliseconds(1000);
+  private static readonly TimeSpan InitialDelay = TimeSpan.FromSeconds(2);
 
   private readonly IMoBroService _service;
-  private readonly Timer _timer;
+  private readonly IMoBroScheduler _scheduler;
 
-  public Aida64(IMoBroService service)
+  public Aida64(IMoBroService service, IMoBroScheduler scheduler)
   {
     _service = service;
-    _timer = new Timer
-    {
-      Interval = UpdateInterval.TotalMilliseconds,
-      AutoReset = true,
-      Enabled = false
-    };
-    _timer.Elapsed += Update;
+    _scheduler = scheduler;
   }
 
-  public void Init() => _timer.Start();
-
-  public void Pause() => _timer.Stop();
-
-  public void Resume() => _timer.Start();
-
-  private void Update(object? sender, ElapsedEventArgs e)
+  public void Init()
   {
-    try
-    {
-      var readings = SharedMemoryReader.Read();
+    _scheduler.Interval(Update, UpdateInterval, InitialDelay);
+  }
 
-      // register new metrics (if any)
-      var unregistered = GetUnregisteredMetrics(readings).ToArray();
-      if (unregistered.Length > 0)
-      {
-        _service.RegisterItems(unregistered);
-      }
+  private void Update()
+  {
+    var readings = SharedMemoryReader.Read();
 
-      // map and update values
-      var now = DateTime.UtcNow;
-      var values = readings.Select(r => r.ToMetricValue(now));
-      _service.UpdateMetricValues(values);
-    }
-    catch (Exception exception)
+    // register new metrics (if any)
+    var unregistered = GetUnregisteredMetrics(readings).ToArray();
+    if (unregistered.Length > 0)
     {
-      _service.NotifyError(exception);
+      _service.Register(unregistered);
     }
+
+    // map and update values
+    var now = DateTime.UtcNow;
+    var values = readings.Select(r => r.ToMetricValue(now));
+    _service.UpdateMetricValues(values);
   }
 
   private IEnumerable<IMoBroItem> GetUnregisteredMetrics(IList<SensorReading> readings)
@@ -58,7 +45,7 @@ public class Aida64 : IMoBroPlugin
     if (!readings.Any()) return Enumerable.Empty<IMoBroItem>();
 
     return readings
-      .Where(r => !_service.TryGetItem<IMetric>(r.Id, out _))
+      .Where(r => !_service.TryGet<IMetric>(r.Id, out _))
       .Select(r => r.ToMetric());
   }
 
