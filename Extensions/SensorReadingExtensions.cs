@@ -119,13 +119,22 @@ internal static class SensorReadingExtensions
     if (!TryParseDouble(reading.Value, out var doubleValue)) return reading.Value;
 
     // convert to base units
-    return ParseType(reading) switch
+    switch (ParseType(reading))
     {
-      CoreMetricType.Data => doubleValue * 1_000_000, // MB -> byte
-      CoreMetricType.Frequency => doubleValue * 1_000_000, // MHz -> Hz
-      CoreMetricType.DataFlow => ConvertDataFlow(reading, doubleValue),
-      _ => doubleValue
-    };
+      case CoreMetricType.Data:
+        
+        if (ParseCategory(reading) == CoreCategory.Storage)
+        {
+          return doubleValue * 1_000_000_000; // GB -> byte
+        }
+        return doubleValue * 1_000_000; // MB -> byte
+      case CoreMetricType.Frequency:
+        return doubleValue * 1_000_000; // MHz -> Hz
+      case CoreMetricType.DataFlow:
+        return ConvertDataFlow(reading, doubleValue);
+      default:
+        return doubleValue;
+    }
   }
 
   private static double ConvertDataFlow(in SensorReading reading, double parsedValue)
