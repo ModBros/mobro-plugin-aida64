@@ -7,15 +7,17 @@
         <Company>ModBros OG</Company>
         <Product>MoBro</Product>
         <Description>Aida64 Plugin for MoBro</Description>
-        <IsPackable>true</IsPackable>
+        <IsPackable>false</IsPackable>
         <Title>MoBro Aida64 Plugin</Title>
         <Copyright>(C) ModBros OG 2023</Copyright>
         <PackageProjectUrl>www.mod-bros.com</PackageProjectUrl>
         <VersionPrefix>0.1.1</VersionPrefix>
         <Nullable>enable</Nullable>
+        <OutputType>Exe</OutputType>
         <EnableDynamicLoading>true</EnableDynamicLoading>
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <LangVersion>11</LangVersion>
+        <InvariantGlobalization>true</InvariantGlobalization>
     </PropertyGroup>
 
     <ItemGroup>
@@ -33,7 +35,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="MoBro.Plugin.SDK" Version="0.1.5" />
+        <PackageReference Include="MoBro.Plugin.SDK" Version="0.1.9" PrivateAssets="all" />
     </ItemGroup>
 
 </Project>
