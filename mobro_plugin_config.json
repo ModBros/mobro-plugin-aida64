@@ -3,5 +3,17 @@
   "displayName": "Aida64",
   "author": "ModBros",
   "description": null,
-  "assembly": "Plugin.Aida64.dll"
+  "assembly": "Plugin.Aida64.dll",
+  "localization": "Resources/Localization",
+  "settings": [
+    {
+      "type": "number",
+      "name": "update_frequency",
+      "label": "s_update_frequency_label",
+      "description": "s_update_frequency_desc",
+      "required": false,
+      "defaultValue": 1000,
+      "min": 500
+    }
+  ]
 }

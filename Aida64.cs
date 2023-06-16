@@ -6,21 +6,24 @@ namespace MoBro.Plugin.Aida64;
 
 public class Aida64 : IMoBroPlugin
 {
-  private static readonly TimeSpan UpdateInterval = TimeSpan.FromMilliseconds(1000);
   private static readonly TimeSpan InitialDelay = TimeSpan.FromSeconds(2);
+  private const int DefaultUpdateFrequencyMs = 1000;
 
   private readonly IMoBroService _service;
   private readonly IMoBroScheduler _scheduler;
 
-  public Aida64(IMoBroService service, IMoBroScheduler scheduler)
+  private readonly int _updateFrequency;
+
+  public Aida64(IMoBroService service, IMoBroScheduler scheduler, IMoBroSettings settings)
   {
     _service = service;
     _scheduler = scheduler;
+    _updateFrequency = settings.GetValue("update_frequency", DefaultUpdateFrequencyMs);
   }
 
   public void Init()
   {
-    _scheduler.Interval(Update, UpdateInterval, InitialDelay);
+    _scheduler.Interval(Update, TimeSpan.FromMilliseconds(_updateFrequency), InitialDelay);
   }
 
   private void Update()

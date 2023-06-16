@@ -1,0 +1,4 @@
+{
+  "s_update_frequency_label": "Updateintervall",
+  "s_update_frequency_desc": "Frequenz in Millisekunden in der die \"Shared Memory\" Datei gelesen wird um die Metriken zu aktualisieren"
+}
