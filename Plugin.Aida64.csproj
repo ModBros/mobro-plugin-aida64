@@ -11,7 +11,7 @@
         <Title>MoBro Aida64 Plugin</Title>
         <Copyright>(C) ModBros OG 2023</Copyright>
         <PackageProjectUrl>www.mod-bros.com</PackageProjectUrl>
-        <VersionPrefix>0.1.2</VersionPrefix>
+        <VersionPrefix>0.1.3</VersionPrefix>
         <Nullable>enable</Nullable>
         <OutputType>Exe</OutputType>
         <EnableDynamicLoading>true</EnableDynamicLoading>
