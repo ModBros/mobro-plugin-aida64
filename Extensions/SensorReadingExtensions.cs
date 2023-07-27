@@ -21,7 +21,7 @@ internal static class SensorReadingExtensions
   private static readonly string[] MultiplierLabels = { "multiplier" };
   private static readonly string[] DataLabels = { "memory", "space" };
 
-  public static IMetric ToMetric(this in SensorReading reading)
+  public static Metric ToMetric(this in SensorReading reading)
   {
     return MoBroItem
       .CreateMetric()

@@ -48,11 +48,7 @@ public class Aida64 : IMoBroPlugin
     if (!readings.Any()) return Enumerable.Empty<IMoBroItem>();
 
     return readings
-      .Where(r => !_service.TryGet<IMetric>(r.Id, out _))
+      .Where(r => !_service.TryGet<Metric>(r.Id, out _))
       .Select(r => r.ToMetric());
-  }
-
-  public void Dispose()
-  {
   }
 }
