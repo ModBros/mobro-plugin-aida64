@@ -1,8 +1,15 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using AIDA64.Model;
+using MoBro.Plugin.SDK.Builders;
+using MoBro.Plugin.SDK.Enums;
+using MoBro.Plugin.SDK.Models.Metrics;
 
 namespace MoBro.Plugin.Aida64.Extensions;
 
-internal static class SensorReadingExtensions
+internal static class SensorValueExtensions
 {
   // categories
   private static readonly string[] ProcessorLabels = { "cpu", "processor" };
@@ -21,7 +28,7 @@ internal static class SensorReadingExtensions
   private static readonly string[] MultiplierLabels = { "multiplier" };
   private static readonly string[] DataLabels = { "memory", "space" };
 
-  public static Metric ToMetric(this in SensorReading reading)
+  public static Metric ToMetric(this in SensorValue reading)
   {
     return MoBroItem
       .CreateMetric()
@@ -33,7 +40,7 @@ internal static class SensorReadingExtensions
       .Build();
   }
 
-  public static MetricValue ToMetricValue(this in SensorReading reading, in DateTime time)
+  public static MetricValue ToMetricValue(this in SensorValue reading, in DateTime time)
   {
     return new MetricValue(
       reading.Id,
@@ -42,7 +49,7 @@ internal static class SensorReadingExtensions
     );
   }
 
-  private static CoreCategory ParseCategory(in SensorReading reading)
+  private static CoreCategory ParseCategory(in SensorValue reading)
   {
     var id = reading.Id.ToLower();
     var label = reading.Label.ToLower();
@@ -59,7 +66,7 @@ internal static class SensorReadingExtensions
     return CoreCategory.Miscellaneous;
   }
 
-  private static CoreMetricType ParseType(in SensorReading reading)
+  private static CoreMetricType ParseType(in SensorValue reading)
   {
     var lowerLabel = reading.Label.ToLower();
 
@@ -68,7 +75,7 @@ internal static class SensorReadingExtensions
 
     switch (reading.Type)
     {
-      case "sys": // System
+      case SensorType.System:
 
         // all non numeric values => text
         if (!TryParseDouble(reading.Value, out _)) return CoreMetricType.Text;
@@ -95,25 +102,28 @@ internal static class SensorReadingExtensions
         // return default type
         break;
 
-      case "temp": // Temperature
+      case SensorType.Temperature:
         return CoreMetricType.Temperature;
-      case "fan": // Cooling Fans
-      case "duty": // Fan Speeds
+      case SensorType.FanSpeed:
+      case SensorType.CoolingFan:
         return CoreMetricType.Rotation;
-      case "volt": // Voltage
+      case SensorType.Voltage:
         return CoreMetricType.ElectricPotential;
-      case "curr": // Current
+      case SensorType.Current:
         return CoreMetricType.ElectricCurrent;
-      case "pwr": // Power
+      case SensorType.Power:
         return CoreMetricType.Power;
-      case "flow": // Flow Sensors
+      case SensorType.WaterFlow:
         return CoreMetricType.VolumeFlow;
+      case SensorType.Unknown:
+      default:
+        break;
     }
 
     return TryParseDouble(reading.Value, out _) ? CoreMetricType.Numeric : CoreMetricType.Text;
   }
 
-  private static object? ReadingToValue(in SensorReading reading)
+  private static object? ReadingToValue(in SensorValue reading)
   {
     // no need to convert non numeric values
     if (!TryParseDouble(reading.Value, out var doubleValue)) return reading.Value;
@@ -122,11 +132,12 @@ internal static class SensorReadingExtensions
     switch (ParseType(reading))
     {
       case CoreMetricType.Data:
-        
+
         if (ParseCategory(reading) == CoreCategory.Storage)
         {
           return doubleValue * 1_000_000_000; // GB -> byte
         }
+
         return doubleValue * 1_000_000; // MB -> byte
       case CoreMetricType.Frequency:
         return doubleValue * 1_000_000; // MHz -> Hz
@@ -137,7 +148,7 @@ internal static class SensorReadingExtensions
     }
   }
 
-  private static double ConvertDataFlow(in SensorReading reading, double parsedValue)
+  private static double ConvertDataFlow(in SensorValue reading, double parsedValue)
   {
     var lowerLabel = reading.Label.ToLower();
 

@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace MoBro.Plugin.Aida64.Extensions;
 
 internal static class StringExtensions
