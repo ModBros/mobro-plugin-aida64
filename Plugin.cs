@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using AIDA64.Model;
 using AIDA64.Readers;
 using MoBro.Plugin.Aida64.Extensions;
 using MoBro.Plugin.SDK;
@@ -17,9 +16,11 @@ public class Plugin : IMoBroPlugin
 
   private readonly IMoBroService _service;
   private readonly IMoBroScheduler _scheduler;
+  private readonly SharedMemoryReader _sharedMemoryReader;
 
   private readonly int _updateFrequency;
-  private readonly SharedMemoryReader _sharedMemoryReader;
+  private readonly TimeSpan _nullValueThreshold;
+  private readonly IDictionary<string, MetricValue> _values;
 
   public Plugin(IMoBroService service, IMoBroScheduler scheduler, IMoBroSettings settings)
   {
@@ -27,6 +28,8 @@ public class Plugin : IMoBroPlugin
     _scheduler = scheduler;
     _updateFrequency = settings.GetValue("update_frequency", DefaultUpdateFrequencyMs);
     _sharedMemoryReader = new SharedMemoryReader();
+    _nullValueThreshold = TimeSpan.FromMilliseconds(_updateFrequency * 2);
+    _values = new Dictionary<string, MetricValue>();
   }
 
   public void Init()
@@ -36,7 +39,8 @@ public class Plugin : IMoBroPlugin
 
   private void Update()
   {
-    var sensorValues = ReadSensorValues().ToList();
+    var now = DateTime.UtcNow;
+    var sensorValues = _sharedMemoryReader.Read().ToList();
 
     // register new metrics (if any)
     var unregisteredMetrics = sensorValues
@@ -47,21 +51,22 @@ public class Plugin : IMoBroPlugin
     if (unregisteredMetrics.Any()) _service.Register(unregisteredMetrics);
 
     // map and update values
-    var now = DateTime.UtcNow;
-    var metricValues = sensorValues.Select(r => r.ToMetricValue(now));
+    var metricValues = sensorValues
+      .Select(r => r.ToMetricValue(now))
+      .Where(mv => FlickerFilter(mv))
+      .ToList();
+
+    metricValues.ForEach(mv => _values[mv.Id] = mv);
     _service.UpdateMetricValues(metricValues);
   }
 
-  private IEnumerable<SensorValue> ReadSensorValues()
+  private bool FlickerFilter(in MetricValue newVal)
   {
-    try
-    {
-      return _sharedMemoryReader.Read();
-    }
-    catch (Exception)
-    {
-      // do not fail the plugin on errors resulting from reading the shared memory file
-      return Enumerable.Empty<SensorValue>();
-    }
+    // filter out 'null' values in case the existing non-null value is not older than a given threshold
+    // this is to avoid 'flickering' of metric values in case the value is not available for short periods
+    return newVal.Value != null
+           || !_values.TryGetValue(newVal.Id, out var currValue)
+           || currValue.Value == null
+           || DateTime.UtcNow - currValue.Timestamp > _nullValueThreshold;
   }
 }
