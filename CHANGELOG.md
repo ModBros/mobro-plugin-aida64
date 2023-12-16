@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Use AIDA64.SensorValues.Net to read shared memory
+- Changed display name to 'AIDA64'
 
 ## 0.1.3 - 2023-07-27
 

@@ -1,6 +1,6 @@
 {
   "name": "modbros_aida64",
-  "displayName": "Aida64",
+  "displayName": "AIDA64",
   "author": "ModBros",
   "description": null,
   "assembly": "Plugin.Aida64.dll",
