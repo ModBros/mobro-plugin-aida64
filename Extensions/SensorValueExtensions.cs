@@ -14,8 +14,8 @@ internal static class SensorValueExtensions
   // categories
   private static readonly string[] ProcessorLabels = { "cpu", "processor" };
   private static readonly string[] GraphicsLabels = { "gpu", "video" };
-  private static readonly string[] MemoryLabels = { "memory", "dimm", "ram" };
-  private static readonly string[] StorageLabels = { "drive", "disk", "hdd", "ssd" };
+  private static readonly string[] MemoryLabels = { "memory", "dimm", "ram", "ddr" };
+  private static readonly string[] StorageLabels = { "drive", "disk", "hdd", "ssd", "nvme" };
   private static readonly string[] BatteryLabels = { "battery" };
   private static readonly string[] NetworkLabels = { "nic" };
 
@@ -27,6 +27,8 @@ internal static class SensorValueExtensions
   private static readonly string[] FrequencyLabels = { "clock", "frequency" };
   private static readonly string[] MultiplierLabels = { "multiplier" };
   private static readonly string[] DataLabels = { "memory", "space" };
+
+  private const string TrialValue = "TRIAL";
 
   public static Metric ToMetric(this in SensorValue reading)
   {
@@ -68,6 +70,9 @@ internal static class SensorValueExtensions
 
   private static CoreMetricType ParseType(in SensorValue reading)
   {
+    // check for value of trial version first
+    if (TrialValue.Equals(reading.Value.Trim())) return CoreMetricType.Text;
+
     var lowerLabel = reading.Label.ToLower();
 
     // check for usage first as it is present across all reading types
