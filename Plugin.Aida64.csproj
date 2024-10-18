@@ -4,13 +4,13 @@
         <TargetFramework>net7.0-windows</TargetFramework>
         <RootNamespace>MoBro.Plugin.Aida64</RootNamespace>
         <Authors>ModBros</Authors>
-        <Company>ModBros OG</Company>
+        <Company>ModBros KG</Company>
         <Product>MoBro</Product>
         <Description>Aida64 Plugin for MoBro</Description>
         <IsPackable>false</IsPackable>
         <Title>MoBro Aida64 Plugin</Title>
-        <Copyright>(C) ModBros OG 2023</Copyright>
-        <PackageProjectUrl>www.mod-bros.com</PackageProjectUrl>
+        <Copyright>(C) ModBros KG 2024</Copyright>
+        <PackageProjectUrl>https://mobro.app</PackageProjectUrl>
         <VersionPrefix>0.2.0</VersionPrefix>
         <Nullable>enable</Nullable>
         <OutputType>Exe</OutputType>
