@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net7.0-windows</TargetFramework>
+        <TargetFramework>net8.0-windows</TargetFramework>
         <RootNamespace>MoBro.Plugin.Aida64</RootNamespace>
         <Authors>ModBros</Authors>
         <Company>ModBros KG</Company>
@@ -9,7 +9,7 @@
         <Description>Aida64 Plugin for MoBro</Description>
         <IsPackable>false</IsPackable>
         <Title>MoBro Aida64 Plugin</Title>
-        <Copyright>(C) ModBros KG 2024</Copyright>
+        <Copyright>(C) ModBros KG 2025</Copyright>
         <PackageProjectUrl>https://mobro.app</PackageProjectUrl>
         <VersionPrefix>0.2.0</VersionPrefix>
         <Nullable>enable</Nullable>
@@ -18,7 +18,7 @@
         <UseAppHost>false</UseAppHost>
         <SelfContained>false</SelfContained>
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
-        <LangVersion>11</LangVersion>
+        <LangVersion>12</LangVersion>
         <InvariantGlobalization>true</InvariantGlobalization>
     </PropertyGroup>
 
@@ -38,7 +38,7 @@
 
     <ItemGroup>
         <PackageReference Include="AIDA64.SensorValues.Net" Version="1.0.0" />
-        <PackageReference Include="MoBro.Plugin.SDK" Version="0.3.0" PrivateAssets="all" />
+        <PackageReference Include="MoBro.Plugin.SDK" Version="1.0.1" PrivateAssets="all" />
     </ItemGroup>
 
 </Project>

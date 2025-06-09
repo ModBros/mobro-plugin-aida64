@@ -3,7 +3,7 @@ using MoBro.Plugin.Aida64;
 using MoBro.Plugin.SDK;
 using Serilog.Events;
 
-var plugin = MoBroPluginBuilder
+using var plugin = MoBroPluginBuilder
   .Create<Plugin>()
   .WithLogLevel(LogEventLevel.Debug)
   .Build();
