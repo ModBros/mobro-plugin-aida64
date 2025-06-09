@@ -2,9 +2,18 @@
   "name": "modbros_aida64",
   "displayName": "AIDA64",
   "author": "ModBros",
-  "description": null,
+  "description": "Integrates metrics from AIDA64 Extreme via shared memory",
   "assembly": "Plugin.Aida64.dll",
   "localization": "Resources/Localization",
+  "repository": "https://github.com/ModBros/mobro-plugin-aida64",
+  "homepage": "https://faq.mobro.app/mobro/plugins/aida",
+  "tags": [
+    "aida",
+    "aida64",
+    "hardware",
+    "system",
+    "extreme"
+  ],
   "settings": [
     {
       "type": "select",
