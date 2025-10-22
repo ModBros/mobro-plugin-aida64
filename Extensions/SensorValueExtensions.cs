@@ -12,21 +12,21 @@ namespace MoBro.Plugin.Aida64.Extensions;
 internal static class SensorValueExtensions
 {
   // categories
-  private static readonly string[] ProcessorLabels = { "cpu", "processor" };
-  private static readonly string[] GraphicsLabels = { "gpu", "video" };
-  private static readonly string[] MemoryLabels = { "memory", "dimm", "ram", "ddr" };
-  private static readonly string[] StorageLabels = { "drive", "disk", "hdd", "ssd", "nvme" };
-  private static readonly string[] BatteryLabels = { "battery" };
-  private static readonly string[] NetworkLabels = { "nic" };
+  private static readonly string[] ProcessorLabels = ["cpu", "processor"];
+  private static readonly string[] GraphicsLabels = ["gpu", "video"];
+  private static readonly string[] MemoryLabels = ["memory", "dimm", "ram", "ddr"];
+  private static readonly string[] StorageLabels = ["drive", "disk", "hdd", "ssd", "nvme"];
+  private static readonly string[] BatteryLabels = ["battery"];
+  private static readonly string[] NetworkLabels = ["nic"];
 
   private static readonly string[] MotherboardLabels =
-    { "motherboard", "mainboard", "chipset", "vrm", "soc", "asus", "msi", "gigabyte", "asrock", "evga", "acer" };
+    ["motherboard", "mainboard", "chipset", "vrm", "soc", "asus", "msi", "gigabyte", "asrock", "evga", "acer"];
 
   // metric types
-  private static readonly string[] UsageLabels = { "utilization", "%" };
-  private static readonly string[] FrequencyLabels = { "clock", "frequency" };
-  private static readonly string[] MultiplierLabels = { "multiplier" };
-  private static readonly string[] DataLabels = { "memory", "space" };
+  private static readonly string[] UsageLabels = ["utilization", "%"];
+  private static readonly string[] FrequencyLabels = ["clock", "frequency"];
+  private static readonly string[] MultiplierLabels = ["multiplier"];
+  private static readonly string[] DataLabels = ["memory", "space"];
 
   private const string TrialValue = "TRIAL";
 
@@ -53,8 +53,8 @@ internal static class SensorValueExtensions
 
   private static CoreCategory ParseCategory(in SensorValue reading)
   {
-    var id = reading.Id.ToLower();
-    var label = reading.Label.ToLower();
+    var id = reading.Id ?? string.Empty;
+    var label = reading.Label ?? string.Empty;
 
     if (ContainsAny(ProcessorLabels, id, label)) return CoreCategory.Cpu;
     if (ContainsAny(GraphicsLabels, id, label)) return CoreCategory.Gpu;
@@ -71,12 +71,13 @@ internal static class SensorValueExtensions
   private static CoreMetricType ParseType(in SensorValue reading)
   {
     // check for value of trial version first
-    if (TrialValue.Equals(reading.Value.Trim())) return CoreMetricType.Text;
+    var rawValue = reading.Value?.Trim();
+    if (string.Equals(TrialValue, rawValue, StringComparison.OrdinalIgnoreCase)) return CoreMetricType.Text;
 
-    var lowerLabel = reading.Label.ToLower();
+    var label = reading.Label ?? string.Empty;
 
     // check for usage first as it is present across all reading types
-    if (lowerLabel.ContainsAny(UsageLabels)) return CoreMetricType.Usage;
+    if (ContainsAny(UsageLabels, label)) return CoreMetricType.Usage;
 
     switch (reading.Type)
     {
@@ -85,23 +86,20 @@ internal static class SensorValueExtensions
         // all non numeric values => text
         if (!TryParseDouble(reading.Value, out _)) return CoreMetricType.Text;
 
-        if (lowerLabel.ContainsAny(FrequencyLabels)) return CoreMetricType.Frequency;
-        if (lowerLabel.ContainsAny(MultiplierLabels)) return CoreMetricType.Multiplier;
-        if (lowerLabel.ContainsAny(DataLabels)) return CoreMetricType.Data;
+        if (ContainsAny(FrequencyLabels, label)) return CoreMetricType.Frequency;
+        if (ContainsAny(MultiplierLabels, label)) return CoreMetricType.Multiplier;
+        if (ContainsAny(DataLabels, label)) return CoreMetricType.Data;
 
         // network (nic) handling 
-        if (lowerLabel.ContainsAny(NetworkLabels))
+        if (ContainsAny(NetworkLabels, label))
         {
-          if (lowerLabel.Contains("total")) return CoreMetricType.Data;
-          if (lowerLabel.ContainsAny("speed", "rate")) return CoreMetricType.DataFlow;
+          if (label.ContainsAny("total")) return CoreMetricType.Data;
+          if (label.ContainsAny("speed", "rate")) return CoreMetricType.DataFlow;
         }
         // handling of drives
-        else if (lowerLabel.ContainsAny(StorageLabels))
+        else if (ContainsAny(StorageLabels, label))
         {
-          if (lowerLabel.ContainsAny("read speed", "write speed"))
-          {
-            return CoreMetricType.DataFlow;
-          }
+          if (label.ContainsAny("read speed", "write speed")) return CoreMetricType.DataFlow;
         }
 
         // return default type
@@ -155,13 +153,14 @@ internal static class SensorValueExtensions
 
   private static double ConvertDataFlow(in SensorValue reading, double parsedValue)
   {
-    var lowerLabel = reading.Label.ToLower();
+    var label = reading.Label ?? string.Empty;
 
     // nic connection speed (gbit, 100mbit, ...)
-    if (lowerLabel.Contains("connection speed")) return parsedValue * 1_000_000; // MBit -> bit
+    if (label.ContainsAny("connection speed"))
+      return parsedValue * 1_000_000; // MBit -> bit
 
     // disk speed
-    if (lowerLabel.ContainsAny("read speed", "write speed")) return parsedValue * 8_000_000; // MB -> bit
+    if (label.ContainsAny("read speed", "write speed")) return parsedValue * 8_000_000; // MB -> bit
 
     // default (download, upload, etc.)
     return parsedValue * 8_000; //KB -> bit
@@ -172,13 +171,19 @@ internal static class SensorValueExtensions
     return strs.Length switch
     {
       <= 0 => false,
-      1 => labels.Any(strs[0].Contains),
-      _ => labels.Any(l => strs.Any(s => s.Contains(l)))
+      1 => labels.Any(l => strs[0].Contains(l, StringComparison.OrdinalIgnoreCase)),
+      _ => labels.Any(l => strs.Any(s => s.Contains(l, StringComparison.OrdinalIgnoreCase)))
     };
   }
 
-  private static bool TryParseDouble(string value, out double parsedValue)
+  private static bool TryParseDouble(string? value, out double parsedValue)
   {
+    if (string.IsNullOrWhiteSpace(value))
+    {
+      parsedValue = -1;
+      return false;
+    }
+
     return double.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out parsedValue);
   }
 }
