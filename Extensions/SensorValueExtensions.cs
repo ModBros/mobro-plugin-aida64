@@ -30,25 +30,28 @@ internal static class SensorValueExtensions
 
   private const string TrialValue = "TRIAL";
 
-  public static Metric ToMetric(this in SensorValue reading)
+  extension(in SensorValue reading)
   {
-    return MoBroItem
-      .CreateMetric()
-      .WithId(reading.Id)
-      .WithLabel(reading.Label)
-      .OfType(ParseType(reading))
-      .OfCategory(ParseCategory(reading))
-      .OfNoGroup()
-      .Build();
-  }
+    public Metric ToMetric()
+    {
+      return MoBroItem
+        .CreateMetric()
+        .WithId(reading.Id)
+        .WithLabel(reading.Label)
+        .OfType(ParseType(reading))
+        .OfCategory(ParseCategory(reading))
+        .OfNoGroup()
+        .Build();
+    }
 
-  public static MetricValue ToMetricValue(this in SensorValue reading, in DateTime time)
-  {
-    return new MetricValue(
-      reading.Id,
-      time,
-      ReadingToValue(reading)
-    );
+    public MetricValue ToMetricValue(in DateTime time)
+    {
+      return new MetricValue(
+        reading.Id,
+        time,
+        ReadingToValue(reading)
+      );
+    }
   }
 
   private static CoreCategory ParseCategory(in SensorValue reading)
