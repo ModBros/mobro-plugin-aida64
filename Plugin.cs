@@ -22,6 +22,8 @@ public class Plugin : IMoBroPlugin
   private readonly TimeSpan _nullValueThreshold;
   private readonly IDictionary<string, MetricValue> _values;
 
+  private int _metricCount;
+
   public Plugin(IMoBroService service, IMoBroScheduler scheduler, IMoBroSettings settings)
   {
     _service = service;
@@ -41,14 +43,19 @@ public class Plugin : IMoBroPlugin
   {
     var now = DateTime.UtcNow;
     var sensorValues = _sharedMemoryReader.Read().ToList();
+    if (sensorValues.Count == 0) return;
 
     // register new metrics (if any)
-    var unregisteredMetrics = sensorValues
-      .Where(r => !_service.TryGet<Metric>(r.Id, out _))
-      .Select(r => r.ToMetric())
-      .ToList();
+    if (sensorValues.Count != _metricCount)
+    {
+      var unregisteredMetrics = sensorValues
+        .Where(r => !_service.TryGet<Metric>(r.Id, out _))
+        .Select(r => r.ToMetric())
+        .ToList();
 
-    if (unregisteredMetrics.Any()) _service.Register(unregisteredMetrics);
+      _service.Register(unregisteredMetrics);
+      _metricCount = sensorValues.Count;
+    }
 
     // map and update values
     var metricValues = sensorValues
