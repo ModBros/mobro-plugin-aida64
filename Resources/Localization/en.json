@@ -1,4 +1,6 @@
 {
   "s_update_frequency_label": "Update frequency",
-  "s_update_frequency_desc": "Frequency in milliseconds to read the shared memory file and update the metrics"
+  "s_update_frequency_desc": "Frequency in milliseconds to read the shared memory file and update the metrics",
+  "d_aida64_label": "AIDA64",
+  "d_aida64_desc": "Running AIDA64 with 'shared memory' enabled"
 }

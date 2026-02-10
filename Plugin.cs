@@ -4,6 +4,7 @@ using System.Linq;
 using AIDA64.Readers;
 using MoBro.Plugin.Aida64.Extensions;
 using MoBro.Plugin.SDK;
+using MoBro.Plugin.SDK.Enums;
 using MoBro.Plugin.SDK.Models.Metrics;
 using MoBro.Plugin.SDK.Services;
 
@@ -13,6 +14,7 @@ public class Plugin : IMoBroPlugin
 {
   private static readonly TimeSpan InitialDelay = TimeSpan.FromSeconds(2);
   private const int DefaultUpdateFrequencyMs = 1000;
+  private const string DependencyKey = "aida64";
 
   private readonly IMoBroService _service;
   private readonly IMoBroScheduler _scheduler;
@@ -43,7 +45,13 @@ public class Plugin : IMoBroPlugin
   {
     var now = DateTime.UtcNow;
     var sensorValues = _sharedMemoryReader.Read().ToList();
-    if (sensorValues.Count == 0) return;
+    if (sensorValues.Count == 0)
+    {
+      _service.SetDependencyStatus(DependencyKey, DependencyStatus.Missing);
+      return;
+    }
+
+    _service.SetDependencyStatus(DependencyKey, DependencyStatus.Ok);
 
     // register new metrics (if any)
     if (sensorValues.Count != _metricCount)

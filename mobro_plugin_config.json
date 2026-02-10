@@ -57,5 +57,14 @@
         }
       ]
     }
+  ],
+  "dependencies": [
+    {
+      "name": "aida64",
+      "label": "d_aida64_label",
+      "description": "d_aida64_desc",
+      "required": true,
+      "link": "https://www.aida64.com/"
+    }
   ]
 }
